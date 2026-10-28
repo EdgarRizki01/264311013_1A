@@ -1,13 +1,3 @@
--- =====================================================================
--- PEMODELAN FISIK - SIM Keuangan UMKM
--- DBMS : MySQL 8.0.16+ (CHECK constraint baru ditegakkan mulai versi ini)
--- =====================================================================
-
-DROP DATABASE IF EXISTS db_keuangan_umkm;
-CREATE DATABASE db_keuangan_umkm
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
-USE db_keuangan_umkm;
 
 -- =====================================================================
 -- 1. PENGGUNA
@@ -21,7 +11,6 @@ CREATE TABLE PENGGUNA (
     alamat                   TEXT          NULL,
     nomor_telepon            VARCHAR(20)   NULL,
     role                     VARCHAR(20)   NOT NULL DEFAULT 'Kasir',
-    -- atribut turunan (jumlah transaksi yang dibuat); dipertahankan sesuai ERD
     jumlah_transaksi_dibuat  INT           NOT NULL DEFAULT 0,
     CONSTRAINT pk_pengguna PRIMARY KEY (id_pengguna),
     CONSTRAINT uq_pengguna_email UNIQUE (email),
@@ -78,8 +67,6 @@ CREATE TABLE KAS_REKENING (
 
 -- =====================================================================
 -- 6. TRANSAKSI
--- Catatan: pihak transaksi (pelanggan/pemasok) disimpan di sini sesuai
--- hasil normalisasi 3NF, karena bergantung pada id_transaksi.
 -- =====================================================================
 CREATE TABLE TRANSAKSI (
     id_transaksi       VARCHAR(15)    NOT NULL,
@@ -107,7 +94,6 @@ CREATE TABLE TRANSAKSI (
     CONSTRAINT chk_transaksi_status
         CHECK (status_validasi IN ('Belum Valid', 'Valid', 'Ditolak')),
     CONSTRAINT chk_transaksi_total CHECK (total_nilai >= 0),
-    -- penjualan wajib punya pelanggan, pembelian wajib punya pemasok
     CONSTRAINT chk_transaksi_pihak CHECK (
         (jenis_transaksi = 'Penjualan'   AND id_pelanggan IS NOT NULL AND id_pemasok IS NULL) OR
         (jenis_transaksi = 'Pembelian'   AND id_pemasok   IS NOT NULL AND id_pelanggan IS NULL) OR
@@ -196,7 +182,6 @@ CREATE TABLE TRANSAKSI_KAS_PEMILIK (
 
 -- =====================================================================
 -- 10. DETAIL_PENJUALAN
--- subtotal = jumlah x harga_satuan_actual - diskon_item
 -- =====================================================================
 CREATE TABLE DETAIL_PENJUALAN (
     id_transaksi         VARCHAR(15)    NOT NULL,
